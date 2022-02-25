@@ -2,14 +2,6 @@ const inquirer = require('inquirer');
 const fs = require('fs');
 const generatePage = require('./src/page-template.js');
 
-//const pageHTML = generatePage(name,github);
-
-//fs.writeFile('./index.html', pageHTML, err => {
- // if (err) throw err;
-
- // console.log('Portfolio complete! Check out index.html to see the output!');
-//});
-
 const promptUser = () => {
 return inquirer
 .prompt([
@@ -29,12 +21,33 @@ return inquirer
   {
     type: 'input',
     name: 'github',
-    message: 'Enter your Github username'
+    message: 'Enter your Github username (Required)',
+    validate: githubInput => {
+      if (githubInput) {
+        return true; 
+      } else {
+        console.log('Please enter your Github username');
+        return false;
+      }
+    }
+  },
+  {
+    type: 'confirm',
+    name: 'confirmAbout',
+    messager: 'Would you like to enter some info about yourself for an ABOUT ME section?',
+    default: true
   },
   {
     type: 'input',
     name: 'about',
-    message: 'Provide some information about yourself:'
+    message: 'Provide some information about yourself:',
+    when: ({ confirmAbout }) => {
+      if (confirmAbout) {
+        return true
+      } else {
+        return false;
+      }
+    }
   }
 ]);
 };
@@ -96,8 +109,13 @@ const promptProject = portfolioData => {
 };
 
 promptUser()
-.then(promptProject)
-.then(portfolioData => {
-  console.log(portfolioData);
-});
+  .then(promptProject)
+  .then(portfolioData => {
+    const pageHTML = generatePage(portfolioData);
 
+     fs.writeFile('./index.html', pageHTML, err => {
+       if (err) throw new Error(err);
+
+       console.log('Page created! Check out index.html in this directory to see it!');
+      });
+  });
